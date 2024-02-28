@@ -55,8 +55,9 @@ class RLEMaskProcessor:
         '''
         all_masks = np.zeros((768, 768), dtype=np.int16)
         for mask in in_mask_list:
-            if mask:
+            if isinstance(mask, str):
                 all_masks += RLEMaskProcessor.rle_decode(mask)
+        
         return np.expand_dims(all_masks, -1)
 
 

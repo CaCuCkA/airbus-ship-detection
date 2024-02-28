@@ -7,11 +7,13 @@ class CONST:
     """
     __slots__=()
 
+    DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
+
     # Paths to training and test data directories
-    MODEL_FOLDER = os.path.abspath("../models/model.h5")
-    TRAIN_FOLDER = os.path.abspath("../train_v2")
-    TEST_FOLDER = os.path.abspath("../test_v2")
-    CSV_PATH = os.path.abspath("../train_ship_segmentations_v2.csv")
+    TEST_FOLDER = os.path.join(DATA_PATH, "test_v2")
+    TRAIN_FOLDER = os.path.join(DATA_PATH, "train_v2")
+    MODEL_FOLDER = os.path.join(DATA_PATH, "models", "model.h5")
+    CSV_PATH = os.path.join(DATA_PATH, "train_ship_segmentations_v2.csv")
 
     # Image configuration
     IMG_SIZE = (768, 768, 3)
@@ -28,3 +30,4 @@ class CONST:
 CONST = CONST()
 
 __all__ = CONST
+print(CONST.TRAIN_FOLDER)

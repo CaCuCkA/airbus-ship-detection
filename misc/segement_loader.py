@@ -6,13 +6,14 @@ from typing import List, Tuple
 import numpy as np
 import pandas as pd
 from skimage.io import imread
-from constants import CONST
 from tensorflow.keras.utils import Sequence
-from mask_rle_processing import RLEMaskProcessor
+
+from misc.constants import CONST
+from misc.mask_rle_processing import RLEMaskProcessor
 
 
 class SegmentationDataLoader(Sequence):
-    def __init__(self, image_set: List[str], mask_set: pd.DataFrame, batch_size: int) -> None:
+    def __init__(self, image_set: list, mask_set: pd.DataFrame, batch_size: int) -> None:
         self.__image_set = image_set
         self.__mask_set = mask_set
         self.__batch_size = batch_size
@@ -33,7 +34,7 @@ class SegmentationDataLoader(Sequence):
 
         batch_y = np.array([
             RLEMaskProcessor.masks_as_image(
-                self.__mask_set[self.__mask_set['ImageId'] == img_name]['EncodedPixels'].tolist()) 
+                self.__mask_set[self.__mask_set['ImageId'] == img_name]['EncodedPixels']) 
             for img_name in batch_images
         ])
 
