@@ -116,3 +116,12 @@ The decoder pathway reconstructs the segmentation map from the encoded features,
 
  ## Training
 The training process for our ship detection model combines binary cross-entropy loss with the Dice coefficient to fine-tune model parameters, aiming for precise pixel classification and accurate ship segmentation. I employ the Adam optimizer with its default settings, benefiting from its adaptive learning rate to efficiently navigate the optimization landscape. 
+> **Note!** \
+>While training I was faced with a problem that my True Positive Rate was quit 
+>small ~ `0.4`. My suggestion, this is because the data not almost normolized a
+> and I should apllied more extra features for that. However the 
+>`binary_accuracy` and `specificity_metric` were about `0.996`.
+
+
+
+
