@@ -8,7 +8,7 @@ class SegmentationMetrics:
     def dice_coefficient(y_true: Tensor, y_pred: Tensor, smooth: float = 1) -> Tensor:
         """
         Calculate the Dice Coefficient for measuring the similarity between two sets of data.
-        
+
         Args:
             y_true (Tensor): The ground truth binary mask.
             y_pred (Tensor): The predicted binary mask.
@@ -18,9 +18,11 @@ class SegmentationMetrics:
             Tensor: The Dice Coefficient as a float between 0 and 1.
         """
         y_true_f = K.cast(y_true, 'float32')
-        intersection = K.sum(y_true_f * y_pred, axis=[1, 2, 3])
-        union = K.sum(y_true_f, axis=[1, 2, 3]) + K.sum(y_pred, axis=[1, 2, 3])
-        return K.mean((2. * intersection + smooth) / (union + smooth), axis=0)
+        y_pred_f = K.cast(y_pred, 'float32')  # Ensure y_pred is also cast to float32
+        intersection = K.sum(y_true_f * y_pred_f, axis=[1, 2, 3])
+        union = K.sum(y_true_f, axis=[1, 2, 3]) + K.sum(y_pred_f, axis=[1, 2, 3])
+        dice = K.mean((2. * intersection + smooth) / (union + smooth), axis=0)
+        return dice
 
 
     @staticmethod
@@ -35,7 +37,11 @@ class SegmentationMetrics:
         Returns:
             Tensor: The combined Dice and BCE loss.
         """
-        return 1e-3 * binary_crossentropy(y_true, y_pred) - SegmentationMetrics.dice_coefficient(y_true, y_pred)
+        bce_loss = binary_crossentropy(y_true, y_pred)
+        dice_loss = 1 - SegmentationMetrics.dice_coefficient(y_true, y_pred)
+        # Ensure the combined loss is always non-negative
+        combined_loss = bce_loss + dice_loss
+        return combined_loss
 
 
     @staticmethod

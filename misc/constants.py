@@ -20,7 +20,8 @@ class CONST:
     NUM_CLASSES = 2
 
     # Training configuration
-    BATCH_SIZE = 8
+    BATCH_SIZE = 4
+    INITIAL_LEARNING_RATE = 1e-3
     MAX_TRAIN_STEPS = 100
     VALIDATION_SPLIT = 0.2
     NB_EPOCHS = 5

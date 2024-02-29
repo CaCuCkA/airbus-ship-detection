@@ -1,6 +1,5 @@
 from typing import Tuple
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, UpSampling2D, concatenate
+from tensorflow.keras import models, layers
 
 class UnetModel:
     def __init__(self, input_shape: Tuple[int, int, int]) -> None:
@@ -8,53 +7,64 @@ class UnetModel:
         self.__model = self.__build_model()
 
 
-    def __build_model(self) -> Model:
-        # Input layer
-        inputs = Input(self.__input_shape)
+    def __build_model(self) -> models.Model:
+        inputs = layers.Input(self.__input_shape)
 
-        # Contracting path
-        conv1 = Conv2D(64, 3, activation='relu', padding='same')(inputs)
-        conv1 = Conv2D(64, 3, activation='relu', padding='same')(conv1)
-        pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
+        c1 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(inputs)
+        c1 = layers.Dropout(0.1)(c1)
+        c1 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c1)
+        p1 = layers.MaxPooling2D((2, 2))(c1)
 
-        conv2 = Conv2D(128, 3, activation='relu', padding='same')(pool1)
-        conv2 = Conv2D(128, 3, activation='relu', padding='same')(conv2)
-        pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
+        c2 = layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p1)
+        c2 = layers.Dropout(0.1)(c2)
+        c2 = layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c2)
+        p2 = layers.MaxPooling2D((2, 2))(c2)
 
-        conv3 = Conv2D(256, 3, activation='relu', padding='same')(pool2)
-        conv3 = Conv2D(256, 3, activation='relu', padding='same')(conv3)
-        pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
+        c3 = layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p2)
+        c3 = layers.Dropout(0.2)(c3)
+        c3 = layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c3)
+        p3 = layers.MaxPooling2D((2, 2))(c3)
 
-        conv4 = Conv2D(512, 3, activation='relu', padding='same')(pool3)
-        conv4 = Conv2D(512, 3, activation='relu', padding='same')(conv4)
+        c4 = layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p3)
+        c4 = layers.Dropout(0.2)(c4)
+        c4 = layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c4)
+        p4 = layers.MaxPooling2D(pool_size=(2, 2))(c4)
 
-        # Expanding path
-        up5 = UpSampling2D(size=(2, 2))(conv4)
-        up5 = Conv2D(256, 2, activation='relu', padding='same')(up5)
-        merge5 = concatenate([conv3, up5], axis=3)
-        conv5 = Conv2D(256, 3, activation='relu', padding='same')(merge5)
-        conv5 = Conv2D(256, 3, activation='relu', padding='same')(conv5)
+        c5 = layers.Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(p4)
+        c5 = layers.Dropout(0.3)(c5)
+        c5 = layers.Conv2D(256, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c5)
 
-        up6 = UpSampling2D(size=(2, 2))(conv5)
-        up6 = Conv2D(128, 2, activation='relu', padding='same')(up6)
-        merge6 = concatenate([conv2, up6], axis=3)
-        conv6 = Conv2D(128, 3, activation='relu', padding='same')(merge6)
-        conv6 = Conv2D(128, 3, activation='relu', padding='same')(conv6)
+        u6 = layers.Conv2DTranspose(128, (2, 2), strides=(2, 2), padding='same')(c5)
+        u6 = layers.concatenate([u6, c4])
+        c6 = layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u6)
+        c6 = layers.Dropout(0.2)(c6)
+        c6 = layers.Conv2D(128, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c6)
 
-        up7 = UpSampling2D(size=(2, 2))(conv6)
-        up7 = Conv2D(64, 2, activation='relu', padding='same')(up7)
-        merge7 = concatenate([conv1, up7], axis=3)
-        conv7 = Conv2D(64, 3, activation='relu', padding='same')(merge7)
-        conv7 = Conv2D(64, 3, activation='relu', padding='same')(conv7)
+        u7 = layers.Conv2DTranspose(64, (2, 2), strides=(2, 2), padding='same')(c6)
+        u7 = layers.concatenate([u7, c3])
+        c7 = layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u7)
+        c7 = layers.Dropout(0.2)(c7)
+        c7 = layers.Conv2D(64, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c7)
 
-        # Output layer
-        output = Conv2D(1, 1, activation='sigmoid')(conv7)
+        u8 = layers.Conv2DTranspose(32, (2, 2), strides=(2, 2), padding='same')(c7)
+        u8 = layers.concatenate([u8, c2])
+        c8 = layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u8)
+        c8 = layers.Dropout(0.1)(c8)
+        c8 = layers.Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c8)
 
-        # Create the model
-        model = Model(inputs=inputs, outputs=output)
+        u9 = layers.Conv2DTranspose(16, (2, 2), strides=(2, 2), padding='same')(c8)
+        u9 = layers.concatenate([u9, c1], axis=3)
+        c9 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(u9)
+        c9 = layers.Dropout(0.1)(c9)
+        c9 = layers.Conv2D(16, (3, 3), activation='relu', kernel_initializer='he_normal', padding='same')(c9)
+
+
+        output = layers.Conv2D(1, (1, 1), activation='sigmoid')(c9)
+
+        model = models.Model(inputs=[inputs], outputs=[output])
 
         return model
     
-    
-    def get_model(self) -> Model:
+
+    def get_model(self) -> models.Model:
         return self.__model
